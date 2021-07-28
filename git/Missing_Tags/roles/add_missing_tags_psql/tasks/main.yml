@@ -1,0 +1,10 @@
+     - name: Script to add tags to the RDS and related resources
+       template:
+         src: tags.sh.j2
+         dest: /tmp/tags.sh
+         force: yes
+         mode: 0777 
+       tags: update_missing_tag
+    
+     - name: run the bashscript to add tags
+       command: "bash /tmp/tags.sh -a {{access_key}} -s {{secret_key}} -r {{region}} -h {{host_name}} -n {{tag_name}} -v {{tag_value}}"

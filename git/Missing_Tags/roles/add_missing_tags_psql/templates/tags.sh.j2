@@ -1,0 +1,34 @@
+while getopts a:s:r:h:n:v: flag
+do
+    case "${flag}" in
+        a) access_key=${OPTARG};;
+        s) secret_key=${OPTARG};;
+        r) region=${OPTARG};;
+        h) hostname=${OPTARG};;
+        n) tag_name=${OPTARG};;
+        v) tag_value=${OPTARG};;
+    esac
+done
+
+
+d='hcpsql-'
+a="db:"
+b="subgrp:"
+c="pg:"
+db_name=$d$hostname
+arn=$(AWS_ACCESS_KEY_ID=$access_key AWS_SECRET_ACCESS_KEY=$secret_key /usr/bin/aws rds describe-db-instances --region $region --db-instance-identifier $db_name | grep -i BInstanceArn| grep -i arn -m 1 |awk '{print $2}' |sed 's/"//g' | awk '{sub(/db.*/,""); print}')
+sg_id=$(AWS_ACCESS_KEY_ID=$access_key AWS_SECRET_ACCESS_KEY=$secret_key /usr/bin/aws rds describe-db-instances --region $region --db-instance-identifier $db_name | grep -i VpcSecurityGroupId |sed 's/"//g' |awk '{print $2}' |sed 's/,//g')
+db_arn=$arn$a$d$hostname
+subgrp_arn=$arn$b$hostname
+pg_arn=$arn$c$hostname
+
+#echo $db_name
+#echo $arn
+#echo $db_arn
+#echo $subgrp_arn
+#echo $pg_arn
+#echo $sg_id
+AWS_ACCESS_KEY_ID=$access_key AWS_SECRET_ACCESS_KEY=$secret_key /usr/bin/aws rds add-tags-to-resource --resource-name $db_arn --region $region --tags "[{\"Key\": \"$tag_name\",\"Value\": \"$tag_value\"}]"
+AWS_ACCESS_KEY_ID=$access_key AWS_SECRET_ACCESS_KEY=$secret_key /usr/bin/aws rds add-tags-to-resource --resource-name $pg_arn --region $region --tags "[{\"Key\": \"$tag_name\",\"Value\": \"$tag_value\"}]"
+AWS_ACCESS_KEY_ID=$access_key AWS_SECRET_ACCESS_KEY=$secret_key /usr/bin/aws rds add-tags-to-resource --resource-name $subgrp_arn --region $region --tags "[{\"Key\": \"$tag_name\",\"Value\": \"$tag_value\"}]"
+AWS_ACCESS_KEY_ID=$access_key AWS_SECRET_ACCESS_KEY=$secret_key /usr/bin/aws ec2 create-tags --resources $sg_id --tags $subgrp_arn --region $region --tags "[{\"Key\": \"$tag_name\",\"Value\": \"$tag_value\"}]"

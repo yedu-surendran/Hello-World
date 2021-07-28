@@ -1,0 +1,14 @@
+---
+  
+- hosts: localhost
+  connection: local
+  become: true
+  gather_facts: yes
+  roles:
+    - add_missing_tags_psql
+  environment: 
+    http_proxy: https://proxy.ec1.aws.aztec.cloud.allianz:8888 
+    https_proxy: https://proxy.ec1.aws.aztec.cloud.allianz:8888 
+  #   aws_access_key: "{{ AWS_ACCESS_KEY_ID }}"
+  #   aws_secret_key: "{{ AWS_SECRET_ACCESS_KEY }}"
+  #   aws_ec2_region: "{{ AWS_REGION }}"
